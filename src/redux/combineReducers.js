@@ -164,7 +164,7 @@ export default function combineReducers(reducers) {
   }
 
   // 返回function， 即为createstore中的reducer参数既currentreducer
-  // 自然有state和action两个参数， 可以回createstore文件看看
+  // 自然有state和action两个参数， 可以回createstore文件看看currentReducer(currentState, action)
   return function combination(state = {}, action) {
     // reducer不规范报错
     if (shapeAssertionError) {

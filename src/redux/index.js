@@ -33,7 +33,8 @@ if (
 // 好了，先看createStore ->去看createStore.js文件
 // 看完createStore，已经对redux的大体实现有了一定的了解， 接下来我们看combineReducers -> 👀看文件
 // 接着看bindActionCreators.js文件
-// 最后看applyMiddleware.js
+// 看applyMiddleware.js文件
+// 最后我们看下compose
 export {
   createStore,  
   combineReducers,
@@ -51,8 +52,7 @@ export {
  *   纯函数(reducer)修改state，每次返回一个新的state，不能直接修改原对象。
  *   
  *   为什么？ 为什么要这么设计
- * 
- * 
+ *   太累了， 休息休息， 未完待续...
  * 
  * 
  * 

@@ -181,20 +181,30 @@ export default function createStore(reducer, preloadedState, enhancer) {
     // 所以要提供一个监听模式，当然还要有一个监听函数subscribe, 保证dispatch和subscribe之间的一对多的模式
   }
 
-  // 这是一个高级的api， 用于替换计算 state的reducer，
-  //  不知道的同学面壁去， 哈哈开玩笑的确实很不常用
-  // 
+  // 这是一个高级的api， 用于替换计算 state的reducer，不知道的同学面壁去
+  // 哈哈开玩笑的确实很不常用， 官网也没怎么介绍
+  // redux 热加载机制的时候用到了
   function replaceReducer(nextReducer) {
+    // 既然是替换reducer， 类型要保持一直，不是function的滚远点
     if (typeof nextReducer !== 'function') {
       throw new Error('Expected the nextReducer to be a function.')
     }
 
+    // 当前的currentReducer更新为参数nextReducer
     currentReducer = nextReducer
+    // 和INIT的dispath相同，发送一个dispatch初始化state，表明一下是REPLACE
+    // 自己👀看一下utils方法的ActionTypes， 随性的随机数
     dispatch({ type: ActionTypes.REPLACE })
   }
 
+  // 不知道是干什么的， 先看看哪里用到了， 全局收索一下
+  // 我TM！只有这一个地方有这个函数，而且没被使用（ [$$observable]: observable ）， 就问你气不气？
+  // 当然不气， 作为不思进取的我觉得不用看这部分了， 算了，简单的过一下， 刚好也不知道$$observable这个私有属性的作用
+  // 好了， 全局搜索一下$$observable， 尼玛，对于我这种码农来说， 貌似又是没用的
+  // 好吧，我们看一下作者的注释和代码
   function observable() {
     const outerSubscribe = subscribe
+    // 
     return {
       /**
        * The minimal observable subscription method.
@@ -204,28 +214,36 @@ export default function createStore(reducer, preloadedState, enhancer) {
        * be used to unsubscribe the observable from the store, and prevent further
        * emission of values from the observable.
        */
+      // 参数明显是object
       subscribe(observer) {
         if (typeof observer !== 'object' || observer === null) {
           throw new TypeError('Expected the observer to be an object.')
         }
-
+        //获取观察着的状态
         function observeState() {
+          // 如果有next方法，吧回调state
           if (observer.next) {
             observer.next(getState())
           }
         }
 
         observeState()
+        //返回取消订阅的方法
         const unsubscribe = outerSubscribe(observeState)
         return { unsubscribe }
       },
 
       [$$observable]() {
-        return this
+        return this // 猜测this应该是store
       }
+      // observable方法简单过一下，不做过多解释，有了解的同学，欢迎不吝赐教
     }
   }
 
+  // 有没有想过，在使用redux的时候， 初始化的state哪来的
+  // 当然是自己先dispatch了一下
+  //reducer 返回其初始状态 
+  //初始化 store 里的 state tree
   dispatch({ type: ActionTypes.INIT })
 
   // 这个就是返回的store嘛
