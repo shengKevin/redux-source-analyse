@@ -1,14 +1,3 @@
-/**
- * Composes single-argument functions from right to left. The rightmost
- * function can take multiple arguments as it provides the signature for
- * the resulting composite function.
- *
- * @param {...Function} funcs The functions to compose.
- * @returns {Function} A function obtained by composing the argument functions
- * from right to left. For example, compose(f, g, h) is identical to doing
- * (...args) => f(g(h(...args))).
- */
-
  // 其实这个很有意思，是函数编程中的方法
 //  我们来做一到题
 //  实现这个样一个function -> compose(funcA, funcB, funcC) 形象为 compose(funcA(funcB(funcC())))）
@@ -49,5 +38,7 @@ export default function compose(...funcs) {
   }
 
   // 是不是很巧妙
+  // 其实compose是redux作者从函数式编程中移过来的， 有兴趣的同学去了解一下
+  // 插个话， 因为compose的执行顺序原因， 所以有的middleware插件会要求要放在最后面
   return funcs.reduce((a, b) => (...args) => a(b(...args)))
 }

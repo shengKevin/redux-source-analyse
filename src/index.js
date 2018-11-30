@@ -5,7 +5,9 @@ import { createStore, applyMiddleware, compose } from './redux'
 import rootReducer from './reducers'
 import App from './components/App'
 
+// middleware
 const logger = (store) => (next) => (action) => {
+  // debugger
   console.group(action.type);
   console.info('dispatching', action)
   let result = next(action);
