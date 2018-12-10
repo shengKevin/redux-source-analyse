@@ -16,49 +16,53 @@ const logger = (store) => (next) => (action) => {
   return result
 }
 
-const store = createStore(rootReducer, applyMiddleware(logger));
-
-let unsubscribe = store.subscribe(() => {
-  console.log('subscribe getState: ', store.getState())
-})
-// unsubscribe();
-function Compose(...funcs){
-  if (funcs.length === 0) {
-    return args => args;
-  }
-  if (funcs.length === 1) {
-    return funcs[0]
-  }
-  const arr = funcs;
-  let firstFun = arr[0];
-  let len = arr.length;
-  let i = 1;
-  while(i !== len) {
-    firstFun = firstFun(arr[i]);
-    i++;
-  }
-  return firstFun;
-}
-const a = function(a){return a};
-const b = function(b){return b*2};
-console.log('compose==', compose(a,b)(1));
-console.log('compose==', Compose(a,b)(1));
-
-store.dispatch({
-  type: 'ADD_TODO',
-  id: 111,
-  text: 'asd'});
-
-
-store.dispatch({
-  type: 'ADD_TODO',
-  id: 123,
-  text: 'asd'});
+let store = createStore(rootReducer, applyMiddleware(logger));
+const storeTest = createStore(rootReducer);
 
 render(
-  // <Provider store={store}>
-  //   <App />
-  // </Provider>,
-  <div></div>,
+  // reacr-redux test root app
+  <Provider store={store}>
+    <App changeStore={() => { store = storeTest; console.log(store.getState());  }}/>
+  </Provider>,
+  // redux test root element
+  // <div></div>,
   document.getElementById('root')
 )
+// redux test
+// let unsubscribe = store.subscribe(() => {
+//   console.log('subscribe getState: ', store.getState())
+// })
+// unsubscribe();
+// function Compose(...funcs){
+//   if (funcs.length === 0) {
+//     return args => args;
+//   }
+//   if (funcs.length === 1) {
+//     return funcs[0]
+//   }
+//   const arr = funcs;
+//   let firstFun = arr[0];
+//   let len = arr.length;
+//   let i = 1;
+//   while(i !== len) {
+//     firstFun = firstFun(arr[i]);
+//     i++;
+//   }
+//   return firstFun;
+// }
+// const a = function(a){return a};
+// const b = function(b){return b*2};
+// console.log('compose==', compose(a,b)(1));
+// console.log('compose==', Compose(a,b)(1));
+
+// store.dispatch({
+//   type: 'ADD_TODO',
+//   id: 111,
+//   text: 'asd'});
+
+
+// store.dispatch({
+//   type: 'ADD_TODO',
+//   id: 123,
+//   text: 'asd'});
+// redux test code

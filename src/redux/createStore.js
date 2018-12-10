@@ -3,8 +3,11 @@ import $$observable from 'symbol-observable'
 import ActionTypes from './utils/actionTypes'
 import isPlainObject from './utils/isPlainObject'
 
+// 先看这里， 就是我们调用的createStore function了
 export default function createStore(reducer, preloadedState, enhancer) {
-  // 如果 preloadedState和enhancer都为function是不支持的
+  // 如果 preloadedState和enhancer都为function，不支持，throw new Error
+  // 我们都知道[initState]为object， [enhancer]为function
+
   if (
     (typeof preloadedState === 'function' && typeof enhancer === 'function') ||
     (typeof enhancer === 'function' && typeof arguments[3] === 'function')
@@ -15,24 +18,28 @@ export default function createStore(reducer, preloadedState, enhancer) {
         'together to a single function'
     )
   }
-  // preloadedState为function enhancer为undefined的时候说明state没有初始化, 但是有middleware
+  // preloadedState为function enhancer为undefined的时候说明initState没有初始化, 但是有middleware
   if (typeof preloadedState === 'function' && typeof enhancer === 'undefined') {
     enhancer = preloadedState // 把 preloadedState 赋值给 enhancer
     preloadedState = undefined // preloadedState赋值undeifined
   }
 
   // debugger
+  // 如果参数enhancer存在
   if (typeof enhancer !== 'undefined') {
     // 如果enhancer存在，那他必须是个function, 否则throw Error哈
     if (typeof enhancer !== 'function') {
       throw new Error('Expected the enhancer to be a function.')
     }
-    // 符合要求的参数，就可以执行 enhancer, 
-    // 但是这个return深深的吸引了我, 因为说明有applyMiddleware的时候后面的都不用看了 ???
-    // 可是applyMiddleware其实是必用项，所以猜想一下applyMiddleware强化store之后会enhancer赋值undefined，再次调用createStore
-    // 上下打个debugger看一下执行顺序(debugger位置以注释)， 哈哈， 还真是
-    // 好了， 假设我们还不知道applyMiddleware()这个funcrion干了什么
-    // 先记下，后续在看applyMiddleware， 因为我们现在要看的是createStore
+    /**
+     * 传入符合参数类型的参数，就可以执行 enhancer, 
+     * 但是这个return深深的吸引了我, 因为说明有applyMiddleware的时候后面的都不用看了 ??? 当然不可能
+     * 可是applyMiddleware其实是必用项，所以猜想一下applyMiddleware强化store之后会enhancer赋值undefined，再次调用createStore
+     * 上下打个debugger看一下执行顺序(debugger位置以注释)，果然不出所料
+     * 好了， 假设我们还不知道applyMiddleware()这个funcrion具体干了什么，
+     * 只知道他做了一些处理然后重新调用了createStore并且enhancer参数为undefined
+     * 先记下，后续在看applyMiddleware， 因为我们现在要看的是createStore
+     * * */
     // debugger
     return enhancer(createStore)(reducer, preloadedState)
   }
@@ -46,19 +53,20 @@ export default function createStore(reducer, preloadedState, enhancer) {
   // 简单过一下定义的变量
   let currentReducer = reducer  // 临时reducer
   let currentState = preloadedState // 临时init state
-  let currentListeners = []  // 看名字，是个数组，想到了什么？ 我想到的是监听队列和观察者模式
+  let currentListeners = []  // 看名字，是个数组，起名Listeners，想到了什么？ 我想到的是监听队列和观察者模式
   let nextListeners = currentListeners // 浅拷贝下这个队列
-  let isDispatching = false // 我们很容易先假设isDispatching标志是否正在dispatch
+  let isDispatching = false // 我们很容易先假设isDispatching标志是否正在执行dispatch
 
   // 先看下各个函数的名字， 打眼一看getState，dispatch，subscribe都是比较熟悉的api
   // subscribe，observable再加上定义的数组，应该肯定是监听队列和观察者模式
-  // 那我们先看看比较熟悉且暴露出来的api好了
+  // 那我们先看看比较熟悉且暴露出来的api好了先看 -> getState
+
+  // 其实这里是保存一份订阅快照
   function ensureCanMutateNextListeners() {
     //  不要忘了let nextListeners = currentListeners // 浅拷贝下这个队列
     // 判断nextListeners和当前的currentListeners是不是一个引用
     if (nextListeners === currentListeners) {
-      // 如果是一个引用的话深拷贝出来一个currentListeners赋值给nextListeners
-      // 其实这里是保存一份订阅快照
+      // 如果是一个引用的话深拷贝出来一个currentListeners赋值给nextListener
       nextListeners = currentListeners.slice()
     }
   }
@@ -66,7 +74,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
   // store.getState()获取当前的state
   function getState() {
     // dispatch中不可以getState, 为什么？
-    // 因为dispatch是用来改变state的为了确保state的正确性(获取最新的state)，所有要判断啦
+    // 因为dispatch是用来改变state的,为了确保state的正确性(获取最新的state)，所有要判断啦
     if (isDispatching) {
       throw new Error(
         'You may not call store.getState() while the reducer is executing. ' +
@@ -74,11 +82,11 @@ export default function createStore(reducer, preloadedState, enhancer) {
           'Pass it down from the top reducer instead of reading it from the store.'
       )
     }
-    // 确定currentState是当前的state
+    // 确定currentState是当前的state 看 -> subscribe
     return currentState
   }
 
-  // store.subscribe方法设置监听函数，一旦触发dispatch，就自动执行这个函数
+  // store.subscribe方法设置监听函数，一旦触发disp atch，就自动执行这个函数
   // listener是一个callback function
   function subscribe(listener) {
     // 类型判断
